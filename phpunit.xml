@@ -1,0 +1,17 @@
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/6.0/phpunit.xsd"
+    backupGlobals="true"
+    colors="true"
+>
+    <testsuites>
+        <testsuite name="Default test suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory>src/</directory>
+        </whitelist>
+    </filter>
+</phpunit>
