@@ -11,7 +11,7 @@ class KeyGenerator
             $model = get_class($model);
         }
 
-        return strtolower(str_replace('\\', "_", $model));
+        return strtolower(str_replace('\\', '_', $model));
     }
 
     public function getKeyForIdentifiable(Identifiable $model): string
@@ -29,8 +29,6 @@ class KeyGenerator
         $forModelName = $this->getRedisName($forModel);
         $modelName = $this->getRedisName($model);
 
-        $indexName = "index:{$forModelName}:{$forModel->getId()}:{$modelName}";
-
-        return $indexName;
+        return "index:{$forModelName}:{$forModel->getId()}:{$modelName}";
     }
 }
