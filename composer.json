@@ -2,6 +2,7 @@
     "name": "fedot/async-data-mapper",
     "description": "Simple async datamaper",
     "minimum-stability": "dev",
+    "prefer-stable": true,
     "license": "MIT",
     "authors": [
         {
@@ -21,13 +22,18 @@
     },
     "require": {
         "php": "^7.1",
-        "async-interop/promise": "^0.4"
+        "async-interop/promise": "^0.4",
+        "jms/metadata": "^1.6",
+        "doctrine/annotations": "^1.4",
+        "doctrine/instantiator": "^1.0"
     },
     "require-dev": {
         "amphp/loop": "dev-master",
         "amphp/redis": "dev-amp_v2",
         "symfony/serializer": "^3.2",
-        "phpunit/phpunit": "^6.0"
+        "phpunit/phpunit": "^6.0",
+        "symfony/property-access": "^3.2",
+        "symfony/property-info": "^3.2"
     },
     "suggest": {
         "amphp/redis": "Needed for Redis implementation",
