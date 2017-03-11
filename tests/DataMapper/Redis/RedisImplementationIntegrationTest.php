@@ -122,22 +122,22 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
         $identityMap = new IdentityMap();
 
         wait(all([
-            $modelManager->persist($genreSince),
-            $modelManager->persist($genreFantasy),
-            $modelManager->persist($genreEmpty),
+            $modelManager->persist($genreSince, $identityMap),
+            $modelManager->persist($genreFantasy, $identityMap),
+            $modelManager->persist($genreEmpty, $identityMap),
 
-            $modelManager->persist($author1),
-            $modelManager->persist($author2),
-            $modelManager->persist($author3),
+            $modelManager->persist($author1, $identityMap),
+            $modelManager->persist($author2, $identityMap),
+            $modelManager->persist($author3, $identityMap),
 
-            $modelManager->persist($bio1),
-            $modelManager->persist($bio2),
+            $modelManager->persist($bio1, $identityMap),
+            $modelManager->persist($bio2, $identityMap),
 
-            $modelManager->persist($book1),
-            $modelManager->persist($book2),
-            $modelManager->persist($book3),
-            $modelManager->persist($book4),
-            $modelManager->persist($book5),
+            $modelManager->persist($book1, $identityMap),
+            $modelManager->persist($book2, $identityMap),
+            $modelManager->persist($book3, $identityMap),
+            $modelManager->persist($book4, $identityMap),
+            $modelManager->persist($book5, $identityMap),
         ]));
 
         /** @var Author $loadedAuthor2 */
@@ -163,6 +163,8 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
         $this->assertEquals('Author First', $loadedBook1->getAuthor()->getName());
         $this->assertCount(2, $loadedBook1->getGenres());
         $this->assertSame($loadedAuthor1, $loadedBook1->getAuthor());
+
+        $this->assertSame($author1, $loadedAuthor1);
 
         /** @var Genre[] $expectedGenres */
         $expectedGenres = [

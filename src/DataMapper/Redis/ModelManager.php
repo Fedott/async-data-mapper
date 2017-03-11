@@ -55,11 +55,15 @@ class ModelManager implements ModelManagerInterface
         $this->instantiator = $instantiator;
     }
 
-    public function persist($model): Promise
+    public function persist($model, IdentityMap $identityMap = null): Promise
     {
         $deferred = new Deferred();
 
-        Loop::defer(wrap(function () use ($deferred, $model) {
+        Loop::defer(wrap(function () use ($deferred, $model, $identityMap) {
+            if (null === $identityMap) {
+                $identityMap = new IdentityMap();
+            }
+
             /** @var ClassMetadata $classMetadata */
             $classMetadata = $this->metadataFactory->getMetadataForClass(get_class($model));
 
@@ -67,6 +71,8 @@ class ModelManager implements ModelManagerInterface
                 $this->getKey($classMetadata, $model),
                 $this->getModelData($classMetadata, $model)
             );
+
+            $identityMap->add($classMetadata, $this->getIdFromModel($classMetadata, $model), $model);
 
             $deferred->resolve(true);
         }));
@@ -139,7 +145,7 @@ class ModelManager implements ModelManagerInterface
 
     private function getKey(ClassMetadata $classMetadata, $model): string
     {
-        $id = $this->propertyAccessor->getValue($model, $classMetadata->idField);
+        $id = $this->getIdFromModel($classMetadata, $model);
 
         return $this->getKeyByClassNameId($classMetadata->name, $id);
     }
@@ -189,5 +195,10 @@ class ModelManager implements ModelManagerInterface
         }
 
         return $data;
+    }
+
+    private function getIdFromModel(ClassMetadata $classMetadata, $model): string
+    {
+        return $this->propertyAccessor->getValue($model, $classMetadata->idField);
     }
 }
