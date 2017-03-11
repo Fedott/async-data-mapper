@@ -67,6 +67,9 @@ class Book
         return $this->author;
     }
 
+    /**
+     * @return Genre[]
+     */
     public function getGenres(): array
     {
         return $this->genres;

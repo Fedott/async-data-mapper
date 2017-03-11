@@ -5,13 +5,13 @@ namespace Tests\Fedot\DataMapper\Redis;
 use Amp\Redis\Client;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Instantiator\Instantiator;
+use Fedot\DataMapper\IdentityMap;
 use Fedot\DataMapper\Metadata\Driver\AnnotationDriver;
 use Fedot\DataMapper\Redis\FetchManager;
 use Fedot\DataMapper\Redis\KeyGenerator;
 use Fedot\DataMapper\Redis\ModelManager;
 use Fedot\DataMapper\Redis\PersistManager;
 use Metadata\MetadataFactory;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -37,7 +37,7 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
     {
         parent::setUpBeforeClass();
 
-        print `redis-server --daemonize yes --port 25325 --timeout 3 --pidfile /tmp/amp-redis.pid`;
+        print `redis-server --daemonize yes --port 25325 --timeout 333 --pidfile /tmp/amp-redis.pid`;
 //        sleep(1);
     }
 
@@ -119,6 +119,7 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
 
 
         $modelManager = $this->getModelManager();
+        $identityMap = new IdentityMap();
 
         wait(all([
             $modelManager->persist($genreSince),
@@ -140,19 +141,52 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
         ]));
 
         /** @var Author $loadedAuthor2 */
-        $loadedAuthor2 = wait($modelManager->find(Author::class, 'author-id2'));
+        $loadedAuthor2 = wait($modelManager->find(Author::class, 'author-id2', 1, $identityMap));
 
         $this->assertEquals('Second Author', $loadedAuthor2->getName());
         $this->assertEquals($bio2->getId(), $loadedAuthor2->getBio()->getId());
         $this->assertEquals($bio2->getContent(), $loadedAuthor2->getBio()->getContent());
         $this->assertCount(2, $loadedAuthor2->getBooks());
 
+        /** @var Author $loadedAuthor1 */
+        $loadedAuthor1 = wait($modelManager->find(Author::class, 'author-id1', 1, $identityMap));
+
+        $this->assertEquals('Author First', $loadedAuthor1->getName());
+        $this->assertEquals($bio1->getId(), $loadedAuthor1->getBio()->getId());
+        $this->assertEquals($bio1->getContent(), $loadedAuthor1->getBio()->getContent());
+        $this->assertCount(3, $loadedAuthor1->getBooks());
+
         /** @var Book $loadedBook1 */
-        $loadedBook1 = wait($modelManager->find(Book::class, 'book-id1'));
+        $loadedBook1 = wait($modelManager->find(Book::class, 'book-id1', 1, $identityMap));
 
         $this->assertEquals('book-id1', $loadedBook1->getId());
         $this->assertEquals('Author First', $loadedBook1->getAuthor()->getName());
         $this->assertCount(2, $loadedBook1->getGenres());
+        $this->assertSame($loadedAuthor1, $loadedBook1->getAuthor());
+
+        /** @var Genre[] $expectedGenres */
+        $expectedGenres = [
+            $genreSince,
+            $genreFantasy,
+        ];
+
+        foreach ($expectedGenres as $expectedGenre) {
+            $found = false;
+
+            foreach ($loadedBook1->getGenres() as $genre) {
+                if ($expectedGenre->getId() === $genre->getId()) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            $this->assertTrue($found, 'Not found genres');
+        }
+
+        $identityMap->clear();
+
+        $loadedAuthor1AfterClear = wait($modelManager->find(Author::class, 'author-id1', 1, $identityMap));
+        $this->assertNotSame($loadedAuthor1, $loadedAuthor1AfterClear);
 
         $this->redisClient->close();
     }
