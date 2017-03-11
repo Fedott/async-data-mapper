@@ -26,7 +26,7 @@ use Tests\Fedot\DataMapper\Stubs\Integration\SimpleModel;
 use function Amp\all;
 use function Amp\wait;
 
-class RedisImplementationIntegrationTest extends TestCase
+class RedisImplementationIntegrationTest extends RedisImplementationTestCase
 {
     /**
      * @var Client
@@ -35,6 +35,8 @@ class RedisImplementationIntegrationTest extends TestCase
 
     public static function setUpBeforeClass()
     {
+        parent::setUpBeforeClass();
+
         print `redis-server --daemonize yes --port 25325 --timeout 3 --pidfile /tmp/amp-redis.pid`;
 //        sleep(1);
     }
