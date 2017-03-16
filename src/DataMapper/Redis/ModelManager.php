@@ -80,6 +80,28 @@ class ModelManager implements ModelManagerInterface
         return $deferred->promise();
     }
 
+    public function remove($model, IdentityMap $identityMap = null): Promise
+    {
+        $deferred = new Deferred();
+
+        Loop::defer(wrap(function () use ($deferred, $model, $identityMap) {
+            if (null === $identityMap) {
+                $identityMap = new IdentityMap();
+            }
+
+            /** @var ClassMetadata $classMetadata */
+            $classMetadata = $this->metadataFactory->getMetadataForClass(get_class($model));
+
+            yield $this->redisClient->del($this->getKey($classMetadata, $model));
+
+            $identityMap->delete($classMetadata, $this->getIdFromModel($classMetadata, $model));
+
+            $deferred->resolve(true);
+        }));
+
+        return $deferred->promise();
+    }
+
     public function find(string $class, string $id, int $depthLevel = 1, IdentityMap $identityMap = null): Promise
     {
         $deferred = new Deferred();
@@ -101,36 +123,40 @@ class ModelManager implements ModelManagerInterface
 
                 $modelData = yield $this->redisClient->hGetAll($this->getKeyByClassNameId($class, $id));
 
-                /** @var PropertyMetadata $propertyMetadata */
-                foreach ($classMetadata->propertyMetadata as $propertyMetadata) {
-                    if (array_key_exists($propertyMetadata->name, $modelData)) {
-                        if ($propertyMetadata->isField) {
-                            $propertyMetadata->setValue($modelInstance, $modelData[$propertyMetadata->name]);
-                        } elseif ($depthLevel <= $this->maxDepthLevel && !empty($modelData[$propertyMetadata->name])) {
-                            if ($propertyMetadata->referenceType === 'one') {
-                                $referenceModel = yield $this->find(
-                                    $propertyMetadata->referenceTarget,
-                                    $modelData[$propertyMetadata->name],
-                                    $depthLevel + 1,
-                                    $identityMap
-                                );
-                                $propertyMetadata->setValue($modelInstance, $referenceModel);
-                            } elseif ($propertyMetadata->referenceType === 'many') {
-                                $referenceModels = [];
-                                foreach (explode(',', $modelData[$propertyMetadata->name]) as $referenceId) {
-                                    $referenceModels[] = $this->find(
+                if (empty($modelData)) {
+                    $modelInstance = null;
+                } else {
+                    /** @var PropertyMetadata $propertyMetadata */
+                    foreach ($classMetadata->propertyMetadata as $propertyMetadata) {
+                        if (array_key_exists($propertyMetadata->name, $modelData)) {
+                            if ($propertyMetadata->isField) {
+                                $propertyMetadata->setValue($modelInstance, $modelData[$propertyMetadata->name]);
+                            } elseif ($depthLevel <= $this->maxDepthLevel && !empty($modelData[$propertyMetadata->name])) {
+                                if ($propertyMetadata->referenceType === 'one') {
+                                    $referenceModel = yield $this->find(
                                         $propertyMetadata->referenceTarget,
-                                        $referenceId,
+                                        $modelData[$propertyMetadata->name],
                                         $depthLevel + 1,
                                         $identityMap
                                     );
-                                }
+                                    $propertyMetadata->setValue($modelInstance, $referenceModel);
+                                } elseif ($propertyMetadata->referenceType === 'many') {
+                                    $referenceModels = [];
+                                    foreach (explode(',', $modelData[$propertyMetadata->name]) as $referenceId) {
+                                        $referenceModels[] = $this->find(
+                                            $propertyMetadata->referenceTarget,
+                                            $referenceId,
+                                            $depthLevel + 1,
+                                            $identityMap
+                                        );
+                                    }
 
-                                if (count($referenceModels) > 0) {
-                                    $referenceModels = yield all($referenceModels);
-                                }
+                                    if (count($referenceModels) > 0) {
+                                        $referenceModels = yield all($referenceModels);
+                                    }
 
-                                $propertyMetadata->setValue($modelInstance, $referenceModels);
+                                    $propertyMetadata->setValue($modelInstance, $referenceModels);
+                                }
                             }
                         }
                     }

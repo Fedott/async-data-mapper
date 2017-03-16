@@ -185,6 +185,17 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
             $this->assertTrue($found, 'Not found genres');
         }
 
+        $loadedBook4 = wait($modelManager->find(Book::class, 'book-id4', 1, $identityMap));
+        $this->assertSame($book4, $loadedBook4);
+
+        wait($modelManager->remove($book4, $identityMap));
+
+        $loadedBook4AfterRemove = wait($modelManager->find(Book::class, 'book-id4', 1, $identityMap));
+        $this->assertNull($loadedBook4AfterRemove);
+
+        wait($modelManager->remove($book5));
+        $this->assertNull(wait($modelManager->find(Book::class, 'book-id5')));
+
         $identityMap->clear();
 
         $loadedAuthor1AfterClear = wait($modelManager->find(Author::class, 'author-id1', 1, $identityMap));

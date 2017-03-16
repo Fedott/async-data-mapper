@@ -24,6 +24,11 @@ class IdentityMap
         $this->identityMap[$metadata->name][$id] = $model;
     }
 
+    public function delete(ClassMetadata $metadata, string $id)
+    {
+        unset($this->identityMap[$metadata->name][$id]);
+    }
+
     public function clear()
     {
         $this->identityMap = [];
