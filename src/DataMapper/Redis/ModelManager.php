@@ -2,7 +2,6 @@
 
 namespace Fedot\DataMapper\Redis;
 
-use function Amp\all;
 use Amp\Deferred;
 use Amp\Redis\Client;
 use AsyncInterop\Loop;
@@ -14,6 +13,7 @@ use Fedot\DataMapper\Metadata\PropertyMetadata;
 use Fedot\DataMapper\ModelManagerInterface;
 use Metadata\MetadataFactory;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use function Amp\all;
 use function Amp\wrap;
 
 class ModelManager implements ModelManagerInterface
@@ -158,6 +158,11 @@ class ModelManager implements ModelManagerInterface
                                     $propertyMetadata->setValue($modelInstance, $referenceModels);
                                 }
                             }
+                        } elseif (
+                            !array_key_exists($propertyMetadata->name, $modelData)
+                            && $propertyMetadata->referenceType === 'many'
+                        ) {
+                            $propertyMetadata->setValue($modelInstance, []);
                         }
                     }
                 }

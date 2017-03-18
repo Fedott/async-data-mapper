@@ -185,6 +185,11 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
             $this->assertTrue($found, 'Not found genres');
         }
 
+        /** @var Genre $loadedGenre3 */
+        $loadedGenre3 = wait($modelManager->find(Genre::class, 'genre-id3'));
+        $this->assertSame([], $loadedGenre3->getBooks());
+        $this->assertSame([], $loadedGenre3->getAuthors());
+
         $loadedBook4 = wait($modelManager->find(Book::class, 'book-id4', 1, $identityMap));
         $this->assertSame($book4, $loadedBook4);
 
