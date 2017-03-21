@@ -68,11 +68,17 @@ class Author
         return $this->bio;
     }
 
+    /**
+     * @return Book[]
+     */
     public function getBooks(): array
     {
         return $this->books;
     }
 
+    /**
+     * @return Genre[]
+     */
     public function getGenres(): array
     {
         return $this->genres;

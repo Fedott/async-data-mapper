@@ -153,6 +153,7 @@ class ModelManager implements ModelManagerInterface
 
                                     if (count($referenceModels) > 0) {
                                         $referenceModels = yield all($referenceModels);
+                                        ksort($referenceModels);
                                     }
 
                                     $propertyMetadata->setValue($modelInstance, $referenceModels);

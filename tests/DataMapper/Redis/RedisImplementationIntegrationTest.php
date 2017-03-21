@@ -156,6 +156,10 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
         $this->assertEquals($bio1->getContent(), $loadedAuthor1->getBio()->getContent());
         $this->assertCount(3, $loadedAuthor1->getBooks());
 
+        foreach (['book-id1', 'book-id2', 'book-id3'] as $index => $item) {
+            $this->assertEquals($item, $loadedAuthor1->getBooks()[$index]->getId());
+        }
+
         /** @var Book $loadedBook1 */
         $loadedBook1 = wait($modelManager->find(Book::class, 'book-id1', 1, $identityMap));
 

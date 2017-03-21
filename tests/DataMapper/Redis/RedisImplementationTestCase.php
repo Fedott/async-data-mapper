@@ -6,7 +6,7 @@ use Amp\Loop\LoopFactory;
 use AsyncInterop\Loop;
 use PHPUnit\Framework\TestCase;
 
-class RedisImplementationTestCase extends TestCase
+abstract class RedisImplementationTestCase extends TestCase
 {
     public static function setUpBeforeClass()
     {
