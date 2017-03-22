@@ -3,9 +3,9 @@
 namespace Fedot\DataMapper\Redis;
 
 use Amp\Deferred;
+use Amp\Loop;
+use Amp\Promise;
 use Amp\Redis\Client;
-use AsyncInterop\Loop;
-use AsyncInterop\Promise;
 use Doctrine\Instantiator\Instantiator;
 use Fedot\DataMapper\IdentityMap;
 use Fedot\DataMapper\Metadata\ClassMetadata;
@@ -13,8 +13,7 @@ use Fedot\DataMapper\Metadata\PropertyMetadata;
 use Fedot\DataMapper\ModelManagerInterface;
 use Metadata\MetadataFactory;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
-use function Amp\all;
-use function Amp\wrap;
+use function Amp\Promise\all;
 
 class ModelManager implements ModelManagerInterface
 {
@@ -59,7 +58,7 @@ class ModelManager implements ModelManagerInterface
     {
         $deferred = new Deferred();
 
-        Loop::defer(wrap(function () use ($deferred, $model, $identityMap) {
+        Loop::defer(function () use ($deferred, $model, $identityMap) {
             if (null === $identityMap) {
                 $identityMap = new IdentityMap();
             }
@@ -75,7 +74,7 @@ class ModelManager implements ModelManagerInterface
             $identityMap->add($classMetadata, $this->getIdFromModel($classMetadata, $model), $model);
 
             $deferred->resolve(true);
-        }));
+        });
 
         return $deferred->promise();
     }
@@ -84,7 +83,7 @@ class ModelManager implements ModelManagerInterface
     {
         $deferred = new Deferred();
 
-        Loop::defer(wrap(function () use ($deferred, $model, $identityMap) {
+        Loop::defer(function () use ($deferred, $model, $identityMap) {
             if (null === $identityMap) {
                 $identityMap = new IdentityMap();
             }
@@ -97,7 +96,7 @@ class ModelManager implements ModelManagerInterface
             $identityMap->delete($classMetadata, $this->getIdFromModel($classMetadata, $model));
 
             $deferred->resolve(true);
-        }));
+        });
 
         return $deferred->promise();
     }
@@ -106,7 +105,7 @@ class ModelManager implements ModelManagerInterface
     {
         $deferred = new Deferred();
 
-        Loop::defer(wrap(function () use ($deferred, $class, $id, $depthLevel, $identityMap) {
+        Loop::defer(function () use ($deferred, $class, $id, $depthLevel, $identityMap) {
             if (null === $identityMap) {
                 $identityMap = new IdentityMap();
             }
@@ -170,7 +169,7 @@ class ModelManager implements ModelManagerInterface
             }
 
             $deferred->resolve($modelInstance);
-        }));
+        });
 
         return $deferred->promise();
     }

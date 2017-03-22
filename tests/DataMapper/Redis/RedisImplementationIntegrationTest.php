@@ -7,24 +7,16 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Instantiator\Instantiator;
 use Fedot\DataMapper\IdentityMap;
 use Fedot\DataMapper\Metadata\Driver\AnnotationDriver;
-use Fedot\DataMapper\Redis\FetchManager;
-use Fedot\DataMapper\Redis\KeyGenerator;
 use Fedot\DataMapper\Redis\ModelManager;
-use Fedot\DataMapper\Redis\PersistManager;
 use Metadata\MetadataFactory;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
-use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use Tests\Fedot\DataMapper\Stubs\Identifiable;
 use Tests\Fedot\DataMapper\Stubs\Integration\Author;
 use Tests\Fedot\DataMapper\Stubs\Integration\AuthorBio;
 use Tests\Fedot\DataMapper\Stubs\Integration\Book;
 use Tests\Fedot\DataMapper\Stubs\Integration\Genre;
 use Tests\Fedot\DataMapper\Stubs\Integration\SimpleModel;
-use function Amp\all;
-use function Amp\wait;
+use function Amp\Promise\all;
+use function Amp\Promise\wait;
 
 class RedisImplementationIntegrationTest extends RedisImplementationTestCase
 {
@@ -49,33 +41,6 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
         if (!empty($pid)) {
             print `kill $pid`;
         }
-    }
-
-    public function testPersist()
-    {
-        $client = new Client('tcp://localhost:25325?database=7');
-
-        $serializer     = new Serializer(
-            [
-                new ObjectNormalizer(null, null, null, new PropertyInfoExtractor()),
-            ], [
-            new JsonEncoder(),
-        ]
-        );
-        $keyGenerator   = new KeyGenerator();
-
-        $persistManager = new PersistManager($keyGenerator, $client, $serializer);
-        $fetchManager = new FetchManager($keyGenerator, $client, $serializer);
-
-        $model = new Identifiable('test');
-
-        wait($persistManager->persist($model));
-
-        $result = wait($fetchManager->fetchById(Identifiable::class, 'test'));
-
-        $this->assertEquals($model, $result);
-
-        $client->close();
     }
 
     public function testSimpleModel()
