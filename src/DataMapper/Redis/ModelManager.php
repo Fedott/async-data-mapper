@@ -3,9 +3,9 @@
 namespace Fedot\DataMapper\Redis;
 
 use Amp\Deferred;
+use Amp\Loop;
+use Amp\Promise;
 use Amp\Redis\Client;
-use AsyncInterop\Loop;
-use AsyncInterop\Promise;
 use Doctrine\Instantiator\Instantiator;
 use Fedot\DataMapper\IdentityMap;
 use Fedot\DataMapper\Metadata\ClassMetadata;
@@ -13,7 +13,7 @@ use Fedot\DataMapper\Metadata\PropertyMetadata;
 use Fedot\DataMapper\ModelManagerInterface;
 use Metadata\MetadataFactory;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
-use function Amp\all;
+use function Amp\Promise\all;
 use function Amp\wrap;
 
 class ModelManager implements ModelManagerInterface

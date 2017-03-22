@@ -2,7 +2,7 @@
 
 namespace Fedot\DataMapper;
 
-use AsyncInterop\Promise;
+use Amp\Promise;
 
 interface ModelManagerInterface
 {

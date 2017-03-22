@@ -22,13 +22,12 @@
     },
     "require": {
         "php": "^7.1",
-        "async-interop/promise": "^0.4",
+        "amphp/amp": "^2@dev",
         "jms/metadata": "^1.6",
         "doctrine/annotations": "^1.4",
         "doctrine/instantiator": "^1.0"
     },
     "require-dev": {
-        "amphp/loop": "dev-master",
         "amphp/redis": "dev-amp_v2",
         "symfony/serializer": "^3.2",
         "phpunit/phpunit": "^6.0",
@@ -37,7 +36,6 @@
     },
     "suggest": {
         "amphp/redis": "Needed for Redis implementation",
-        "amphp/loop": "Needed for Redis implementation",
         "symfony/serializer": "Needed for Redis implementation"
     }
 }
