@@ -10,6 +10,6 @@ abstract class RedisImplementationTestCase extends TestCase
     public static function setUpBeforeClass()
     {
         // Reset Loop
-        Loop::set((new Loop\DriverFactory())->create());
+        Loop::set(new Loop\NativeDriver());
     }
 }
