@@ -91,7 +91,7 @@ class RelationshipManager implements RelationshipManagerInterface
             yield $this->redisClient->lRem($indexName, $targetId, 0);
             $insertResult = yield $this->redisClient->lInsert(
                 $indexName,
-                "before",
+                'before',
                 $positionId,
                 $targetId
             );
