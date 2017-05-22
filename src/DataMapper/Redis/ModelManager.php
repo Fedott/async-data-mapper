@@ -2,8 +2,7 @@
 
 namespace Fedot\DataMapper\Redis;
 
-use Amp\Deferred;
-use Amp\Loop;
+use function Amp\call;
 use Amp\Promise;
 use Amp\Redis\Client;
 use Doctrine\Instantiator\Instantiator;
@@ -56,9 +55,7 @@ class ModelManager implements ModelManagerInterface
 
     public function persist($model, IdentityMap $identityMap = null): Promise
     {
-        $deferred = new Deferred();
-
-        Loop::defer(function () use ($deferred, $model, $identityMap) {
+        return call(function ($model, ?IdentityMap $identityMap) {
             if (null === $identityMap) {
                 $identityMap = new IdentityMap();
             }
@@ -73,17 +70,13 @@ class ModelManager implements ModelManagerInterface
 
             $identityMap->add($classMetadata, $this->getIdFromModel($classMetadata, $model), $model);
 
-            $deferred->resolve(true);
-        });
-
-        return $deferred->promise();
+            return true;
+        }, $model, $identityMap);
     }
 
     public function remove($model, IdentityMap $identityMap = null): Promise
     {
-        $deferred = new Deferred();
-
-        Loop::defer(function () use ($deferred, $model, $identityMap) {
+        return call(function ($model, ?IdentityMap $identityMap) {
             if (null === $identityMap) {
                 $identityMap = new IdentityMap();
             }
@@ -95,17 +88,13 @@ class ModelManager implements ModelManagerInterface
 
             $identityMap->delete($classMetadata, $this->getIdFromModel($classMetadata, $model));
 
-            $deferred->resolve(true);
-        });
-
-        return $deferred->promise();
+            return true;
+        }, $model, $identityMap);
     }
 
     public function find(string $class, string $id, int $depthLevel = 1, IdentityMap $identityMap = null): Promise
     {
-        $deferred = new Deferred();
-
-        Loop::defer(function () use ($deferred, $class, $id, $depthLevel, $identityMap) {
+        return call(function (string $class, string $id, int $depthLevel = 1, ?IdentityMap $identityMap) {
             if (null === $identityMap) {
                 $identityMap = new IdentityMap();
             }
@@ -168,10 +157,8 @@ class ModelManager implements ModelManagerInterface
                 }
             }
 
-            $deferred->resolve($modelInstance);
-        });
-
-        return $deferred->promise();
+            return $modelInstance;
+        }, $class, $id, $depthLevel, $identityMap);
     }
 
     private function getKey(ClassMetadata $classMetadata, $model): string
