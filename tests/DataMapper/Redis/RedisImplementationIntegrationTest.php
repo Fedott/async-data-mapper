@@ -43,6 +43,13 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
         }
     }
 
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        $this->redisClient->close();
+    }
+
     public function testSimpleModel()
     {
         $model = new SimpleModel('simple-model-id1', 'field 1');
@@ -58,8 +65,6 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
         $this->assertEquals($model->getId(), $loadedModel->getId());
         $this->assertEquals($model->getField1(), $loadedModel->getField1());
         $this->assertNull($loadedModel->getField2());
-
-        $this->redisClient->close();
     }
 
     public function testBooks()
@@ -174,8 +179,6 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
 
         $loadedAuthor1AfterClear = wait($modelManager->find(Author::class, 'author-id1', 1, $identityMap));
         $this->assertNotSame($loadedAuthor1, $loadedAuthor1AfterClear);
-
-        $this->redisClient->close();
     }
 
     private function getModelManager(): ModelManager
