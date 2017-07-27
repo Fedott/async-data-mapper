@@ -11,6 +11,11 @@ matrix:
     - php: nightly
   fast_finish: true
 
+services:
+  - mongodb
+
+before_install: echo "extension = mongodb.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+
 install:
   - composer self-update
   - composer install --no-interaction --prefer-source
