@@ -2,19 +2,15 @@
 
 namespace Fedot\DataMapper\Redis;
 
-use function Amp\call;
 use Amp\Promise;
 use Amp\Redis\Client;
-use Doctrine\Instantiator\Instantiator;
-use Fedot\DataMapper\IdentityMap;
+use Doctrine\Instantiator\InstantiatorInterface;
+use Fedot\DataMapper\AbstractModelManager;
 use Fedot\DataMapper\Metadata\ClassMetadata;
-use Fedot\DataMapper\Metadata\PropertyMetadata;
-use Fedot\DataMapper\ModelManagerInterface;
 use Metadata\MetadataFactory;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
-use function Amp\Promise\all;
 
-class ModelManager implements ModelManagerInterface
+class ModelManager extends AbstractModelManager
 {
     /**
      * @var MetadataFactory
@@ -32,7 +28,7 @@ class ModelManager implements ModelManagerInterface
     private $propertyAccessor;
 
     /**
-     * @var Instantiator
+     * @var InstantiatorInterface
      */
     private $instantiator;
 
@@ -45,7 +41,7 @@ class ModelManager implements ModelManagerInterface
         MetadataFactory $metadataFactory,
         Client $redisClient,
         PropertyAccessorInterface $propertyAccessor,
-        Instantiator $instantiator
+        InstantiatorInterface $instantiator
     ) {
         $this->metadataFactory = $metadataFactory;
         $this->redisClient = $redisClient;
@@ -53,112 +49,42 @@ class ModelManager implements ModelManagerInterface
         $this->instantiator = $instantiator;
     }
 
-    public function persist($model, IdentityMap $identityMap = null): Promise
+    protected function getMetadataFactory(): MetadataFactory
     {
-        return call(function ($model, ?IdentityMap $identityMap) {
-            if (null === $identityMap) {
-                $identityMap = new IdentityMap();
-            }
-
-            /** @var ClassMetadata $classMetadata */
-            $classMetadata = $this->metadataFactory->getMetadataForClass(get_class($model));
-
-            yield $this->redisClient->hmSet(
-                $this->getKey($classMetadata, $model),
-                $this->getModelData($classMetadata, $model)
-            );
-
-            $identityMap->add($classMetadata, $this->getIdFromModel($classMetadata, $model), $model);
-
-            return true;
-        }, $model, $identityMap);
+        return $this->metadataFactory;
     }
 
-    public function remove($model, IdentityMap $identityMap = null): Promise
+    protected function getPropertyAccessor(): PropertyAccessorInterface
     {
-        return call(function ($model, ?IdentityMap $identityMap) {
-            if (null === $identityMap) {
-                $identityMap = new IdentityMap();
-            }
-
-            /** @var ClassMetadata $classMetadata */
-            $classMetadata = $this->metadataFactory->getMetadataForClass(get_class($model));
-
-            yield $this->redisClient->del($this->getKey($classMetadata, $model));
-
-            $identityMap->delete($classMetadata, $this->getIdFromModel($classMetadata, $model));
-
-            return true;
-        }, $model, $identityMap);
+        return $this->propertyAccessor;
     }
 
-    public function find(string $class, string $id, int $depthLevel = 1, IdentityMap $identityMap = null): Promise
+    protected function getInstantiator(): InstantiatorInterface
     {
-        return call(function (string $class, string $id, int $depthLevel = 1, ?IdentityMap $identityMap) {
-            if (null === $identityMap) {
-                $identityMap = new IdentityMap();
-            }
+        return $this->instantiator;
+    }
 
-            /** @var ClassMetadata $classMetadata */
-            $classMetadata = $this->metadataFactory->getMetadataForClass($class);
+    protected function getMaxDepth(): int
+    {
+        return $this->maxDepthLevel;
+    }
 
-            if ($identityMap->has($classMetadata, $id)) {
-                $modelInstance = $identityMap->get($classMetadata, $id);
-            } else {
-                $modelInstance = $this->instantiator->instantiate($class);
+    protected function upsertModel(ClassMetadata $classMetadata, $model): Promise
+    {
+        return $this->redisClient->hmSet(
+            $this->getKey($classMetadata, $model),
+            $this->getModelData($classMetadata, $model)
+        );
+    }
 
-                $identityMap->add($classMetadata, $id, $modelInstance);
+    protected function removeModel(ClassMetadata $classMetadata, $model): Promise
+    {
+        return $this->redisClient->del($this->getKey($classMetadata, $model));
+    }
 
-                $modelData = yield $this->redisClient->hGetAll($this->getKeyByClassNameId($class, $id));
-
-                if (empty($modelData)) {
-                    $modelInstance = null;
-                } else {
-                    /** @var PropertyMetadata $propertyMetadata */
-                    foreach ($classMetadata->propertyMetadata as $propertyMetadata) {
-                        if (array_key_exists($propertyMetadata->name, $modelData)) {
-                            if ($propertyMetadata->isField) {
-                                $propertyMetadata->setValue($modelInstance, $modelData[$propertyMetadata->name]);
-                            } elseif ($depthLevel <= $this->maxDepthLevel && !empty($modelData[$propertyMetadata->name])) {
-                                if ($propertyMetadata->referenceType === 'one') {
-                                    $referenceModel = yield $this->find(
-                                        $propertyMetadata->referenceTarget,
-                                        $modelData[$propertyMetadata->name],
-                                        $depthLevel + 1,
-                                        $identityMap
-                                    );
-                                    $propertyMetadata->setValue($modelInstance, $referenceModel);
-                                } elseif ($propertyMetadata->referenceType === 'many') {
-                                    $referenceModels = [];
-                                    foreach (explode(',', $modelData[$propertyMetadata->name]) as $referenceId) {
-                                        $referenceModels[] = $this->find(
-                                            $propertyMetadata->referenceTarget,
-                                            $referenceId,
-                                            $depthLevel + 1,
-                                            $identityMap
-                                        );
-                                    }
-
-                                    if (count($referenceModels) > 0) {
-                                        $referenceModels = yield all($referenceModels);
-                                        ksort($referenceModels);
-                                    }
-
-                                    $propertyMetadata->setValue($modelInstance, $referenceModels);
-                                }
-                            }
-                        } elseif (
-                            !array_key_exists($propertyMetadata->name, $modelData)
-                            && $propertyMetadata->referenceType === 'many'
-                        ) {
-                            $propertyMetadata->setValue($modelInstance, []);
-                        }
-                    }
-                }
-            }
-
-            return $modelInstance;
-        }, $class, $id, $depthLevel, $identityMap);
+    protected function findRawModel(ClassMetadata $classMetadata, string $id): Promise
+    {
+        return $this->redisClient->hGetAll($this->getKeyByClassNameId($classMetadata->name, $id));
     }
 
     private function getKey(ClassMetadata $classMetadata, $model): string
@@ -171,52 +97,5 @@ class ModelManager implements ModelManagerInterface
     private function getKeyByClassNameId(string $className, string $id): string
     {
         return "entity:{$className}:$id";
-    }
-
-    private function getModelData(ClassMetadata $classMetadata, $model): array
-    {
-        $data = [];
-
-        /** @var PropertyMetadata $propertyMetadata */
-        foreach ($classMetadata->propertyMetadata as $propertyMetadata) {
-            if ($propertyMetadata->isField) {
-                $data[$propertyMetadata->name] = $this->propertyAccessor->getValue($model, $propertyMetadata->name);
-            } elseif ($propertyMetadata->referenceType === 'one') {
-                /** @var ClassMetadata $referenceClassMetadata */
-                $referenceClassMetadata = $this->metadataFactory->getMetadataForClass(
-                    $propertyMetadata->referenceTarget
-                );
-
-                $referenceModel = $this->propertyAccessor->getValue($model, $propertyMetadata->name);
-                if (null !== $referenceModel) {
-                    $referenceId = $this->propertyAccessor->getValue($referenceModel, $referenceClassMetadata->idField);
-                    $data[$propertyMetadata->name] = $referenceId;
-                }
-            } elseif ($propertyMetadata->referenceType === 'many') {
-                /** @var ClassMetadata $referenceClassMetadata */
-                $referenceClassMetadata = $this->metadataFactory->getMetadataForClass(
-                    $propertyMetadata->referenceTarget
-                );
-
-                $referenceModels = $this->propertyAccessor->getValue($model, $propertyMetadata->name);
-
-                $referenceIds = [];
-                foreach ($referenceModels as $referenceModel) {
-                    $referenceIds[] = $this->propertyAccessor
-                        ->getValue($referenceModel, $referenceClassMetadata->idField);
-                }
-
-                if (count($referenceIds) > 0) {
-                    $data[$propertyMetadata->name] = implode(',', $referenceIds);
-                }
-            }
-        }
-
-        return $data;
-    }
-
-    private function getIdFromModel(ClassMetadata $classMetadata, $model): string
-    {
-        return $this->propertyAccessor->getValue($model, $classMetadata->idField);
     }
 }

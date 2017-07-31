@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Fedot\DataMapper\Mongo;
+namespace Fedot\DataMapper\Memory;
 
 use Amp\Promise;
 use Amp\Success;
@@ -8,7 +8,6 @@ use Doctrine\Instantiator\InstantiatorInterface;
 use Fedot\DataMapper\AbstractModelManager;
 use Fedot\DataMapper\Metadata\ClassMetadata;
 use Metadata\MetadataFactory;
-use MongoDB\Database;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 class ModelManager extends AbstractModelManager
@@ -17,11 +16,6 @@ class ModelManager extends AbstractModelManager
      * @var MetadataFactory
      */
     private $metadataFactory;
-
-    /**
-     * @var Database
-     */
-    private $database;
 
     /**
      * @var PropertyAccessorInterface
@@ -38,16 +32,21 @@ class ModelManager extends AbstractModelManager
      */
     private $maxDepthLevel = 2;
 
+    /**
+     * @var array
+     */
+    private $data = [];
+
     public function __construct(
         MetadataFactory $metadataFactory,
-        Database $database,
         PropertyAccessorInterface $propertyAccessor,
-        InstantiatorInterface $instantiator
+        InstantiatorInterface $instantiator,
+        int $maxDepthLevel
     ) {
         $this->metadataFactory = $metadataFactory;
-        $this->database = $database;
         $this->propertyAccessor = $propertyAccessor;
         $this->instantiator = $instantiator;
+        $this->maxDepthLevel = $maxDepthLevel;
     }
 
     protected function getMetadataFactory(): MetadataFactory
@@ -72,38 +71,22 @@ class ModelManager extends AbstractModelManager
 
     protected function upsertModel(ClassMetadata $classMetadata, $model): Promise
     {
-        $this->database->selectCollection($this->getCollectionNameByClassName($classMetadata->name))
-            ->updateOne(
-                ['id' => $this->getIdFromModel($classMetadata, $model)],
-                ['$set' => $this->getModelData($classMetadata, $model)],
-                ['upsert' => true]
-            );
+        $this->data[$classMetadata->name][$this->getIdFromModel($classMetadata, $model)] = $this->getModelData($classMetadata, $model);
 
         return new Success();
     }
 
     protected function removeModel(ClassMetadata $classMetadata, $model): Promise
     {
-        $this->database
-            ->selectCollection($this->getCollectionNameByClassName($classMetadata->name))
-            ->deleteOne(['id' => $this->getIdFromModel($classMetadata, $model)])
-        ;
+        unset($this->data[$classMetadata->name][$this->getIdFromModel($classMetadata, $model)]);
 
         return new Success();
     }
 
     protected function findRawModel(ClassMetadata $classMetadata, string $id): Promise
     {
-        $modelData = $this->database
-            ->selectCollection($this->getCollectionNameByClassName($classMetadata->name))
-            ->findOne(['id' => $id])
-        ;
-
-        return new Success($modelData);
-    }
-
-    private function getCollectionNameByClassName(string $className): string
-    {
-        return strtolower($className);
+        return new Success(
+            $this->data[$classMetadata->name][$id] ?? null
+        );
     }
 }
