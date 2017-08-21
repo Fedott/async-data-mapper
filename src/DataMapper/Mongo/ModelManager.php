@@ -1,13 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace Fedot\DataMapper\Redis;
+namespace Fedot\DataMapper\Mongo;
 
 use Amp\Promise;
-use Amp\Redis\Client;
+use Amp\Success;
 use Doctrine\Instantiator\InstantiatorInterface;
 use Fedot\DataMapper\AbstractModelManager;
 use Fedot\DataMapper\Metadata\ClassMetadata;
 use Metadata\MetadataFactory;
+use MongoDB\Database;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 class ModelManager extends AbstractModelManager
@@ -18,9 +19,9 @@ class ModelManager extends AbstractModelManager
     private $metadataFactory;
 
     /**
-     * @var Client
+     * @var Database
      */
-    private $redisClient;
+    private $database;
 
     /**
      * @var PropertyAccessorInterface
@@ -39,12 +40,12 @@ class ModelManager extends AbstractModelManager
 
     public function __construct(
         MetadataFactory $metadataFactory,
-        Client $redisClient,
+        Database $database,
         PropertyAccessorInterface $propertyAccessor,
         InstantiatorInterface $instantiator
     ) {
         $this->metadataFactory = $metadataFactory;
-        $this->redisClient = $redisClient;
+        $this->database = $database;
         $this->propertyAccessor = $propertyAccessor;
         $this->instantiator = $instantiator;
     }
@@ -71,31 +72,38 @@ class ModelManager extends AbstractModelManager
 
     protected function upsertModel(ClassMetadata $classMetadata, $model): Promise
     {
-        return $this->redisClient->hmSet(
-            $this->getKey($classMetadata, $model),
-            $this->getModelData($classMetadata, $model)
-        );
+        $this->database->selectCollection($this->getCollectionNameByClassName($classMetadata->name))
+            ->updateOne(
+                ['id' => $this->getIdFromModel($classMetadata, $model)],
+                ['$set' => $this->getModelData($classMetadata, $model)],
+                ['upsert' => true]
+            );
+
+        return new Success();
     }
 
     protected function removeModel(ClassMetadata $classMetadata, $model): Promise
     {
-        return $this->redisClient->del($this->getKey($classMetadata, $model));
+        $this->database
+            ->selectCollection($this->getCollectionNameByClassName($classMetadata->name))
+            ->deleteOne(['id' => $this->getIdFromModel($classMetadata, $model)])
+        ;
+
+        return new Success();
     }
 
     protected function findRawModel(ClassMetadata $classMetadata, string $id): Promise
     {
-        return $this->redisClient->hGetAll($this->getKeyByClassNameId($classMetadata->name, $id));
+        $modelData = $this->database
+            ->selectCollection($this->getCollectionNameByClassName($classMetadata->name))
+            ->findOne(['id' => $id])
+        ;
+
+        return new Success($modelData);
     }
 
-    private function getKey(ClassMetadata $classMetadata, $model): string
+    private function getCollectionNameByClassName(string $className): string
     {
-        $id = $this->getIdFromModel($classMetadata, $model);
-
-        return $this->getKeyByClassNameId($classMetadata->name, $id);
-    }
-
-    private function getKeyByClassNameId(string $className, string $id): string
-    {
-        return "entity:{$className}:$id";
+        return strtolower($className);
     }
 }

@@ -3,7 +3,6 @@
 namespace Tests\Fedot\DataMapper\Metadata\Driver;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
 use Fedot\DataMapper\Metadata\ClassMetadata;
 use Fedot\DataMapper\Metadata\Driver\AnnotationDriver;
 use Fedot\DataMapper\Metadata\PropertyMetadata;

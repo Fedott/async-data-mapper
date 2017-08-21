@@ -3,9 +3,9 @@
 namespace Tests\Fedot\DataMapper\Redis;
 
 use Amp\Loop;
-use PHPUnit\Framework\TestCase;
+use Tests\Fedot\DataMapper\AbstractModelManagerTestCase;
 
-abstract class RedisImplementationTestCase extends TestCase
+abstract class RedisImplementationTestCase extends AbstractModelManagerTestCase
 {
     public static function setUpBeforeClass()
     {

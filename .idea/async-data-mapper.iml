@@ -2,17 +2,20 @@
 <module type="WEB_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" packagePrefix="Fedot" />
-      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" packagePrefix="Tests\Fedot" />
+      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" packagePrefix="Tests\Fedot\" />
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" packagePrefix="Fedot\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/amp" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/byte-stream" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/cache" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/dns" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/file" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/parallel" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/parser" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/process" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/redis" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/socket" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/stream" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/uri" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/amphp/windows-registry" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/daverandom/libdns" />
@@ -20,6 +23,7 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/doctrine/instantiator" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/doctrine/lexer" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/jms/metadata" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/mongodb/mongodb" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/myclabs/deep-copy" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/paragonie/random_compat" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/phar-io/manifest" />
@@ -64,9 +68,12 @@
           <root url="file://$MODULE_DIR$/vendor/amphp/cache" />
           <root url="file://$MODULE_DIR$/vendor/amphp/dns" />
           <root url="file://$MODULE_DIR$/vendor/amphp/file" />
+          <root url="file://$MODULE_DIR$/vendor/amphp/parallel" />
+          <root url="file://$MODULE_DIR$/vendor/amphp/parser" />
           <root url="file://$MODULE_DIR$/vendor/amphp/process" />
           <root url="file://$MODULE_DIR$/vendor/amphp/redis" />
           <root url="file://$MODULE_DIR$/vendor/amphp/socket" />
+          <root url="file://$MODULE_DIR$/vendor/amphp/uri" />
           <root url="file://$MODULE_DIR$/vendor/amphp/windows-registry" />
           <root url="file://$MODULE_DIR$/vendor/composer" />
           <root url="file://$MODULE_DIR$/vendor/daverandom/libdns" />
@@ -74,6 +81,7 @@
           <root url="file://$MODULE_DIR$/vendor/doctrine/instantiator" />
           <root url="file://$MODULE_DIR$/vendor/doctrine/lexer" />
           <root url="file://$MODULE_DIR$/vendor/jms/metadata" />
+          <root url="file://$MODULE_DIR$/vendor/mongodb/mongodb" />
           <root url="file://$MODULE_DIR$/vendor/myclabs/deep-copy" />
           <root url="file://$MODULE_DIR$/vendor/paragonie/random_compat" />
           <root url="file://$MODULE_DIR$/vendor/phar-io/manifest" />
@@ -114,9 +122,12 @@
           <root url="file://$MODULE_DIR$/vendor/amphp/cache" />
           <root url="file://$MODULE_DIR$/vendor/amphp/dns" />
           <root url="file://$MODULE_DIR$/vendor/amphp/file" />
+          <root url="file://$MODULE_DIR$/vendor/amphp/parallel" />
+          <root url="file://$MODULE_DIR$/vendor/amphp/parser" />
           <root url="file://$MODULE_DIR$/vendor/amphp/process" />
           <root url="file://$MODULE_DIR$/vendor/amphp/redis" />
           <root url="file://$MODULE_DIR$/vendor/amphp/socket" />
+          <root url="file://$MODULE_DIR$/vendor/amphp/uri" />
           <root url="file://$MODULE_DIR$/vendor/amphp/windows-registry" />
           <root url="file://$MODULE_DIR$/vendor/composer" />
           <root url="file://$MODULE_DIR$/vendor/daverandom/libdns" />
@@ -124,6 +135,7 @@
           <root url="file://$MODULE_DIR$/vendor/doctrine/instantiator" />
           <root url="file://$MODULE_DIR$/vendor/doctrine/lexer" />
           <root url="file://$MODULE_DIR$/vendor/jms/metadata" />
+          <root url="file://$MODULE_DIR$/vendor/mongodb/mongodb" />
           <root url="file://$MODULE_DIR$/vendor/myclabs/deep-copy" />
           <root url="file://$MODULE_DIR$/vendor/paragonie/random_compat" />
           <root url="file://$MODULE_DIR$/vendor/phar-io/manifest" />
