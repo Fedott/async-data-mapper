@@ -2,7 +2,10 @@
 
 namespace Tests\Fedot\DataMapper\Mongo;
 
+use function Amp\call;
 use Amp\Loop;
+use Amp\Process\Process;
+use function Amp\Promise\wait;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Instantiator\Instantiator;
 use Fedot\DataMapper\Metadata\Driver\AnnotationDriver;
@@ -20,7 +23,10 @@ class MongoImplementationIntegrationTest extends AbstractModelManagerTestCase
      */
     private $mongoClient;
 
-    private static $mongoProcessResource;
+    /**
+     * @var Process
+     */
+    private static $mongoProcess;
 
     public static function setUpBeforeClass()
     {
@@ -28,15 +34,24 @@ class MongoImplementationIntegrationTest extends AbstractModelManagerTestCase
 
         @mkdir('/tmp/amp-mongo-data', 0777, true);
 
-        static::$mongoProcessResource = proc_open(
-            'mongod --port 23456 --pidfilepath /tmp/amp-mongo.pid --dbpath /tmp/amp-mongo-data --syncdelay 0',
-            [
-                0 => array("pipe", "r"),
-                1 => array("pipe", "w"),
-            ],
-            $pipes
+        self::$mongoProcess = new Process(
+            'mongod --port 23456 --pidfilepath /tmp/amp-mongo.pid --dbpath /tmp/amp-mongo-data --syncdelay 0'
         );
-        sleep(1);
+
+        wait(call(function (Process $mongoProcess) {
+            $mongoProcess->start();
+
+            $stream = $mongoProcess->getStdout();
+            $output = '';
+
+            while ($chunk = yield $stream->read()) {
+                $output .= $chunk;
+
+                if (strstr($output, 'waiting for connections on port')) {
+                    break;
+                }
+            }
+        }, self::$mongoProcess));
     }
 
     public static function tearDownAfterClass()

@@ -2,6 +2,8 @@
 
 namespace Tests\Fedot\DataMapper\Redis;
 
+use function Amp\call;
+use Amp\Process\Process;
 use Amp\Redis\Client;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Instantiator\Instantiator;
@@ -22,6 +24,11 @@ use function Amp\Promise\wait;
 class RedisImplementationIntegrationTest extends RedisImplementationTestCase
 {
     /**
+     * @var Process
+     */
+    private static $dbProcess;
+
+    /**
      * @var Client
      */
     private $redisClient;
@@ -30,8 +37,24 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
     {
         parent::setUpBeforeClass();
 
-        print `redis-server --daemonize yes --port 25325 --timeout 333 --pidfile /tmp/amp-redis.pid`;
-//        sleep(1);
+        self::$dbProcess = new Process(
+            'redis-server --daemonize no --port 25325 --timeout 333 --pidfile /tmp/amp-redis.pid'
+        );
+
+        wait(call(function (Process $dbProcess) {
+            $dbProcess->start();
+
+            $stream = $dbProcess->getStdout();
+            $output = '';
+
+            while ($chunk = yield $stream->read()) {
+                $output .= $chunk;
+
+                if (strstr($output, 'Ready to accept connections')) {
+                    break;
+                }
+            }
+        }, self::$dbProcess));
     }
 
     public static function tearDownAfterClass()
