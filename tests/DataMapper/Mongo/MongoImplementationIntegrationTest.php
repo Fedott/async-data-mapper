@@ -2,10 +2,8 @@
 
 namespace Tests\Fedot\DataMapper\Mongo;
 
-use function Amp\call;
 use Amp\Loop;
 use Amp\Process\Process;
-use function Amp\Promise\wait;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Instantiator\Instantiator;
 use Fedot\DataMapper\Metadata\Driver\AnnotationDriver;
@@ -15,6 +13,8 @@ use Metadata\MetadataFactory;
 use MongoDB\Client;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Tests\Fedot\DataMapper\AbstractModelManagerTestCase;
+use function Amp\call;
+use function Amp\Promise\wait;
 
 class MongoImplementationIntegrationTest extends AbstractModelManagerTestCase
 {

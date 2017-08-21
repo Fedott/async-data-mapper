@@ -2,23 +2,16 @@
 
 namespace Tests\Fedot\DataMapper\Redis;
 
-use function Amp\call;
 use Amp\Process\Process;
 use Amp\Redis\Client;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Instantiator\Instantiator;
-use Fedot\DataMapper\IdentityMap;
 use Fedot\DataMapper\Metadata\Driver\AnnotationDriver;
 use Fedot\DataMapper\ModelManagerInterface;
 use Fedot\DataMapper\Redis\ModelManager;
 use Metadata\MetadataFactory;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
-use Tests\Fedot\DataMapper\Stubs\Integration\Author;
-use Tests\Fedot\DataMapper\Stubs\Integration\AuthorBio;
-use Tests\Fedot\DataMapper\Stubs\Integration\Book;
-use Tests\Fedot\DataMapper\Stubs\Integration\Genre;
-use Tests\Fedot\DataMapper\Stubs\Integration\SimpleModel;
-use function Amp\Promise\all;
+use function Amp\call;
 use function Amp\Promise\wait;
 
 class RedisImplementationIntegrationTest extends RedisImplementationTestCase

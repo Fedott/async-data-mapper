@@ -2,8 +2,6 @@
 
 namespace Tests\Fedot\DataMapper;
 
-use function Amp\Promise\all;
-use function Amp\Promise\wait;
 use Fedot\DataMapper\IdentityMap;
 use Fedot\DataMapper\ModelManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -12,6 +10,8 @@ use Tests\Fedot\DataMapper\Stubs\Integration\AuthorBio;
 use Tests\Fedot\DataMapper\Stubs\Integration\Book;
 use Tests\Fedot\DataMapper\Stubs\Integration\Genre;
 use Tests\Fedot\DataMapper\Stubs\Integration\SimpleModel;
+use function Amp\Promise\all;
+use function Amp\Promise\wait;
 
 abstract class AbstractModelManagerTestCase extends TestCase
 {
