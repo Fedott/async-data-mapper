@@ -18,7 +18,7 @@ before_install: echo "extension = mongodb.so" >> ~/.phpenv/versions/$(phpenv ver
 
 install:
   - composer self-update
-  - composer install --no-interaction --prefer-source
+  - composer install --no-interaction
 
 script:
   - php vendor/bin/phpunit --coverage-text --coverage-clover build/logs/clover.xml
