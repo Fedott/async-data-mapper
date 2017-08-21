@@ -35,6 +35,7 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
         );
 
         wait(call(function (Process $dbProcess) {
+            $startTime = time();
             $dbProcess->start();
 
             $stream = $dbProcess->getStdout();
@@ -43,7 +44,10 @@ class RedisImplementationIntegrationTest extends RedisImplementationTestCase
             while ($chunk = yield $stream->read()) {
                 $output .= $chunk;
 
-                if (strstr($output, 'Ready to accept connections')) {
+                if (
+                    stristr($output, 'Ready to accept connections')
+                    || time() - $startTime > 3
+                ) {
                     break;
                 }
             }
