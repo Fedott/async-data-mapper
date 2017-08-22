@@ -34,8 +34,10 @@
         "mongodb/mongodb": "^1.1",
         "amphp/process": "^0.2.1"
     },
-    "branch-alias": {
-        "dev-master": "0.3.0-dev"
+    "extra":{
+        "branch-alias": {
+            "dev-master": "0.3.0-dev"
+        }
     },
     "suggest": {
         "amphp/redis": "Needed for Redis implementation",
